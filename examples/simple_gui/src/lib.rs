@@ -55,8 +55,8 @@ unsafe extern "system" fn h_wndproc(
     wparam: WPARAM,
     lparam: LPARAM,
 ) -> LRESULT {
-    if egui_gl_hook::is_init() {
-        let should_skip_wnd_proc = egui_gl_hook::on_event(umsg, wparam.0, lparam.0).unwrap();
+    if egui_glow_internal::is_init() {
+        let should_skip_wnd_proc = egui_glow_internal::on_event(umsg, wparam.0, lparam.0).unwrap();
 
         if should_skip_wnd_proc {
             return LRESULT(1);
@@ -95,12 +95,12 @@ unsafe extern "system" fn extension_main(_dll: *mut c_void) -> u32 {
                 return h_wglSwapBuffers.call(hdc);
             }
 
-            if !egui_gl_hook::is_init() {
+            if !egui_glow_internal::is_init() {
                 sx.send(hdc).unwrap();
-                egui_gl_hook::init(hdc).unwrap();
+                egui_glow_internal::init(hdc).unwrap();
             }
 
-            egui_gl_hook::paint(
+            egui_glow_internal::paint(
                 hdc,
                 Box::new(|ctx| {
                     let gui = &mut GUI_STATE;
