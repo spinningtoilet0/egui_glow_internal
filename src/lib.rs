@@ -82,6 +82,8 @@ pub fn is_init() -> bool {
 }
 
 /// initializes state; needed to be called before paint, on_event, get_window_rect, and destroy
+///
+/// # Safety
 pub unsafe fn init(window_handle: HDC) -> Result<(), Error> {
     if is_init() {
         return Err(Error::AlreadyInit);
@@ -98,6 +100,8 @@ pub unsafe fn init(window_handle: HDC) -> Result<(), Error> {
         return Err(Error::CtxSwitch);
     }
 
+    // this Arc is not required as the usage is not Send nor Sync, but egui requires an Arc for some reason
+    #[allow(clippy::arc_with_non_send_sync)]
     let gl = Arc::new(unsafe {
         egui_glow::glow::Context::from_loader_function_cstr(|s| {
             let result = wglGetProcAddress(windows::core::PCSTR::from_raw(s.as_ptr() as _));
@@ -139,6 +143,8 @@ pub unsafe fn init(window_handle: HDC) -> Result<(), Error> {
 }
 
 /// runs ui function and makes opengl calls to render to specified window
+///
+/// # Safety
 pub unsafe fn paint(hdc: HDC, run_fn: Box<dyn Fn(&egui::Context)>) -> Result<(), Error> {
     let state = unsafe {
         match &mut STATE {
@@ -443,13 +449,13 @@ fn alter_modifiers(state: &mut EguiState, new: Modifiers) {
 fn get_key(wparam: usize) -> Option<Key> {
     match wparam {
         // number keys
-        0x30..=0x39 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x13)) },
+        0x30..=0x39 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x10)) },
         // letter keys
-        0x41..=0x5A => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x1A)) },
+        0x41..=0x5A => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x17)) },
         // numpad keys
-        0x60..=0x69 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x43)) },
+        0x60..=0x69 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x40)) },
         // f1-f20
-        0x70..=0x83 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x2F)) },
+        0x70..=0x83 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x2C)) },
         _ => match VIRTUAL_KEY(wparam as u16) {
             VK_DOWN => Some(Key::ArrowDown),
             VK_LEFT => Some(Key::ArrowLeft),
