@@ -16,7 +16,7 @@ use windows::{
             LibraryLoader::{GetModuleHandleA, GetProcAddress},
             SystemServices::{MK_CONTROL, MK_SHIFT},
         },
-        UI::{HiDpi::GetDpiForWindow, Input::KeyboardAndMouse::*, WindowsAndMessaging::*},
+        UI::{Input::KeyboardAndMouse::*, WindowsAndMessaging::*},
     },
 };
 
@@ -164,17 +164,12 @@ pub unsafe fn paint(hdc: HDC, run_fn: Box<dyn Fn(&egui::Context)>) -> Result<(),
     }
 
     let raw_input = get_raw_input(state)?;
-    let dpi = match GetDpiForWindow(WindowFromDC(state.window_handle)) {
-        0 => 96.0,
-        dpi => dpi as f32,
-    };
-    let pixels_per_point = dpi / 96.0;
 
     let egui::FullOutput {
         platform_output: _,
         mut textures_delta,
         shapes,
-        pixels_per_point: _,
+        pixels_per_point,
         viewport_output: _,
     } = state.egui_ctx.run(raw_input, &*run_fn); // run through ui and get output
 
